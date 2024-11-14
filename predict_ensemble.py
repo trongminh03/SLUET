@@ -147,9 +147,13 @@ def predict(pred_config):
     # load model and args
     
     model_dirs = []
+    weights_intent = []
+    weights_slot = []
     with open(pred_config.model_list, 'r') as model_list_file:
         for line in model_list_file:
-            model_dirs.append(line.strip())
+            model_dirs.append(line.split(' ')[0].strip())
+            weights_intent.append((float)(line.split(' ')[1].strip()))
+            weights_slot.append((float)(line.split(' ')[2].strip()))
     if not model_dirs:
         raise ValueError("No model directories found in the model_list file.")
     # model = load_model(pred_config, args, device)
@@ -200,6 +204,8 @@ def predict(pred_config):
         ensemble_args.append(args)
         intent_logits_list = None
         slot_logits_list = None
+        weight_intent = weights_intent[model_idx]
+        weight_slot = weights_slot[model_idx]
     # print(pred_config.batch_size)
     # count = 0
         for batch in tqdm(data_loader, desc="Predicting"):
@@ -219,9 +225,10 @@ def predict(pred_config):
                     inputs["token_type_ids"] = batch[2].to(device)
                 outputs = model(**inputs)
                 _, (intent_logits, slot_logits) = outputs[:2]
-                softmax_intent_per_batch = (torch.softmax(intent_logits, dim=-1).cpu().numpy())
-                softmax_slot_per_batch = (torch.softmax(slot_logits, dim=-1).cpu().numpy())
-
+                softmax_intent_per_batch = (torch.softmax(intent_logits, dim=-1).cpu().numpy() * (weight_intent))
+                softmax_slot_per_batch = (torch.softmax(slot_logits, dim=-1).cpu().numpy() * (weight_slot))
+                print(softmax_intent_per_batch)
+                print("intent_logits_per_batch:", softmax_intent_per_batch.shape)
             if intent_logits_list is None:
 
                 intent_logits_list = softmax_intent_per_batch
@@ -233,32 +240,6 @@ def predict(pred_config):
             else:
 
                 slot_logits_list = np.append(slot_logits_list, softmax_slot_per_batch, axis = 0)
-
-        # ensemble_intent = np.mean(intent_logits_per_batch, axis=0)
-        # print("aftermean:", ensemble_intent, "shape:", ensemble_intent.shape)
-        # if ensemble_intent_preds is None:
-            # ensemble_intent_preds = ensemble_intent
-        # else:
-            # ensemble_intent_preds = np.append(ensemble_intent_preds, ensemble_intent, axis=0)
-        
-        # ensemble_slot = np.mean(slot_logits_per_batch, axis=0)
-
-        # if ensemble_slot_preds is None:
-        #     if ensemble_args[0].use_crf:
-        #         # decode() in `torchcrf` returns list with best index directly
-        #         ensemble_slot_preds = np.array(ensemble_models[0].crf.decode(ensemble_slots_logits))
-        #         print("use crf none")
-        #     else:
-        #         ensemble_slot_preds = ensemble_slots_logits.detach().cpu().numpy()
-        #         print("not crf none")
-        #     all_slot_label_mask = batch[3].detach().cpu().numpy()
-        # else:
-        #     if ensemble_args[0].use_crf:
-        #         print("use crf")
-        #         ensemble_slot_preds = np.append(ensemble_slot_preds, np.array(ensemble_models[0].crf.decode(ensemble_slots_logits)), axis=0)
-        #     else:
-        #         print("not crf")
-        #         ensemble_slot_preds = np.append(ensemble_slot_preds, ensemble_slots_logits.detach().cpu().numpy(), axis=0)
 
             if all_slot_label_mask is None:
                 all_slot_label_mask = batch[3].detach().cpu().numpy()
@@ -272,14 +253,23 @@ def predict(pred_config):
         torch.cuda.empty_cache()
 
 
-    print("ensemble_intent_preds:", ensemble_intent_preds, "len:", len(ensemble_intent_preds))
-    ensemble_intent_preds = np.mean(ensemble_intent_preds, axis=0)
-    print ("mean_ensemble_intent_preds:", ensemble_intent_preds, "ensemble_intent_preds_shape:", ensemble_intent_preds.shape)
+    # print("ensemble_intent_preds:", ensemble_intent_preds, "len:", len(ensemble_intent_preds))
+    ensemble_intent_preds = np.sum(ensemble_intent_preds, axis=0)
+    ensemble_intent_preds = np.divide(ensemble_intent_preds, sum(weights_intent))
+    print(ensemble_intent_preds)
+    # print ("mean_ensemble_intent_preds:", ensemble_intent_preds, "ensemble_intent_preds_shape:", ensemble_intent_preds.shape)
     intent_preds = np.argmax(ensemble_intent_preds, axis=1)
-    ensemble_slot_preds = np.mean(ensemble_slot_preds, axis=0)
-    print("ensemble_slot_preds_shape:", ensemble_slot_preds.shape)
+    ensemble_slot_preds = np.sum(ensemble_slot_preds, axis=0)
+    ensemble_slot_preds = np.divide(ensemble_slot_preds, sum(weights_slot))
 
-    slot_preds = np.argmax(ensemble_slot_preds, axis=2)
+    # print("ensemble_slot_preds_shape:", ensemble_slot_preds.shape)
+
+    ensemble_slots_logits = -torch.log(1.0 / torch.tensor(ensemble_slot_preds) - 1).to(device)
+
+    if default_arg.use_crf:
+        slot_preds = np.array(default_model.crf.decode(ensemble_slots_logits))
+    else:
+        slot_preds = np.argmax(ensemble_slot_preds, axis=2)
     # print("intent", intent_preds, "intentpred_shape:", intent_preds.shape)
 
     # print("intents:", intent_label_lst)
