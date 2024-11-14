@@ -28,7 +28,8 @@ def process_line(line, filename):
                         current_entity = {}
                         entity_filler = ""
                 
-                entity_type = entity_type_parts[1].replace("_", " ")
+                # entity_type = entity_type_parts[1].replace("_", " ")
+                entity_type = entity_type_parts[1]
                 filler = entity_parts[0]
                 # entry = {"type": entity_type, "filler": entity_filler}
                 # entity_dict.append(entry)
@@ -56,34 +57,35 @@ def process_line(line, filename):
         if entity["type"] == "location":
             location = entity["filler"]
             locations = location.split()
-    if (device):
-        if (device.split()[-1] == "của"):
-            if (location): 
-                device = device + " " +  locations[0]
-                # remove first word in location
-                location = " ".join(locations[1:])
-                # print(device)
-                for entity in processed_entities:
-                    if entity["type"] == "device":
-                        entity["filler"] = device
-                    if entity["type"] == "location":
-                        entity["filler"] = location
-                        rmentity = entity
-                if len(locations) == 1:
-                    # remove location in entities
-                    processed_entities.remove(rmentity)
-        if (location): 
-            if locations[0] == "của":
-                device = device + " " + location
-                # print(device)
-                for entity in processed_entities:
-                    if entity["type"] == "device":
-                        entity["filler"] = device
-                    if entity["type"] == "location":
-                        rmentity = entity
-                processed_entities.remove(rmentity)
+    # if (device):
+    #     if (device.split()[-1] == "của"):
+    #         if (location): 
+    #             device = device + " " +  locations[0]
+    #             # remove first word in location
+    #             location = " ".join(locations[1:])
+    #             # print(device)
+    #             for entity in processed_entities:
+    #                 if entity["type"] == "device":
+    #                     entity["filler"] = device
+    #                 if entity["type"] == "location":
+    #                     entity["filler"] = location
+    #                     rmentity = entity
+    #             if len(locations) == 1:
+    #                 # remove location in entities
+    #                 processed_entities.remove(rmentity)
+    #     if (location): 
+    #         if locations[0] == "của":
+    #             device = device + " " + location
+    #             # print(device)
+    #             for entity in processed_entities:
+    #                 if entity["type"] == "device":
+    #                     entity["filler"] = device
+    #                 if entity["type"] == "location":
+    #                     rmentity = entity
+    #             processed_entities.remove(rmentity)
 
-    return {"intent": uppercase_first_character(intent), "entities": processed_entities, "file":filename}
+    # return {"intent": uppercase_first_character(intent), "entities": processed_entities, "file":filename}
+    return {"intent": intent, "entities": processed_entities, "file":filename}
 
 def uppercase_first_character(input):
     first_character = input[0]
@@ -103,10 +105,10 @@ def format(jsonl_line):
             have_percentage = True
         if re.match(pattern, entity['filler']):  # Corrected regular expression matching
             have_degree = True
-    if (have_percentage and device == ""):
-        jsonl_line['intent'] = intent.replace("mức độ", "độ sáng").replace("âm lượng", "độ sáng").replace("nhiệt độ", "độ sáng")
-    if (have_degree and device == ""):
-        jsonl_line['intent'] = intent.replace("độ sáng", "nhiệt độ").replace("âm lượng", "nhiệt độ").replace("mức độ", "nhiệt độ")
+    # if (have_percentage and device == ""):
+    #     jsonl_line['intent'] = intent.replace("mức độ", "độ sáng").replace("âm lượng", "độ sáng").replace("nhiệt độ", "độ sáng")
+    # if (have_degree and device == ""):
+    #     jsonl_line['intent'] = intent.replace("độ sáng", "nhiệt độ").replace("âm lượng", "nhiệt độ").replace("mức độ", "nhiệt độ")
     return jsonl_line
 
 

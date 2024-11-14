@@ -55,3 +55,11 @@ transcriptx2.txt
 predict.sh
 final_trans.txt
 transcript_hai.txt
+Vietname_SLU_data
+wandb
+slu_data_1
+ckpt
+*_ngram.binary
+bible.arpa
+*.txt
+*.jsonl

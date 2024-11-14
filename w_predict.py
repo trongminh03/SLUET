@@ -147,11 +147,13 @@ def predict(pred_config):
     # load model and args
     
     model_dirs = []
-    weights = []
+    weights_intent = []
+    weights_slot = []
     with open(pred_config.model_list, 'r') as model_list_file:
         for line in model_list_file:
             model_dirs.append(line.split(' ')[0].strip())
-            weights.append((float)(line.split(' ')[1].strip()))
+            weights_intent.append((float)(line.split(' ')[1].strip()))
+            weights_slot.append((float)(line.split(' ')[2].strip()))
     if not model_dirs:
         raise ValueError("No model directories found in the model_list file.")
     # model = load_model(pred_config, args, device)
@@ -202,7 +204,8 @@ def predict(pred_config):
         ensemble_args.append(args)
         intent_logits_list = None
         slot_logits_list = None
-        weight = weights[model_idx]
+        weight_intent = weights_intent[model_idx]
+        weight_slot = weights_slot[model_idx]
     # print(pred_config.batch_size)
     # count = 0
         for batch in tqdm(data_loader, desc="Predicting"):
@@ -222,8 +225,8 @@ def predict(pred_config):
                     inputs["token_type_ids"] = batch[2].to(device)
                 outputs = model(**inputs)
                 _, (intent_logits, slot_logits) = outputs[:2]
-                softmax_intent_per_batch = (torch.softmax(intent_logits, dim=-1).cpu().numpy() * (weight))
-                softmax_slot_per_batch = (torch.softmax(slot_logits, dim=-1).cpu().numpy() * (weight))
+                softmax_intent_per_batch = (torch.softmax(intent_logits, dim=-1).cpu().numpy() * (weight_intent))
+                softmax_slot_per_batch = (torch.softmax(slot_logits, dim=-1).cpu().numpy() * (weight_slot))
                 print(softmax_intent_per_batch)
                 print("intent_logits_per_batch:", softmax_intent_per_batch.shape)
             if intent_logits_list is None:
@@ -252,12 +255,12 @@ def predict(pred_config):
 
     # print("ensemble_intent_preds:", ensemble_intent_preds, "len:", len(ensemble_intent_preds))
     ensemble_intent_preds = np.sum(ensemble_intent_preds, axis=0)
-    ensemble_intent_preds = np.divide(ensemble_intent_preds, sum(weights))
+    ensemble_intent_preds = np.divide(ensemble_intent_preds, sum(weights_intent))
     print(ensemble_intent_preds)
     # print ("mean_ensemble_intent_preds:", ensemble_intent_preds, "ensemble_intent_preds_shape:", ensemble_intent_preds.shape)
     intent_preds = np.argmax(ensemble_intent_preds, axis=1)
     ensemble_slot_preds = np.sum(ensemble_slot_preds, axis=0)
-    ensemble_slot_preds = np.divide(ensemble_slot_preds, sum(weights))
+    ensemble_slot_preds = np.divide(ensemble_slot_preds, sum(weights_slot))
 
     # print("ensemble_slot_preds_shape:", ensemble_slot_preds.shape)
 
