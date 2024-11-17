@@ -11,11 +11,17 @@ def process_file(input_file_path, output_file_path):
             # Extract sentence and entities
             # sentence = json_data["sentence"].replace("phòng thời", "phòng thờ")
             sentence = json_data["sentence"]
+            sentence = sentence.replace(",", " , ").replace(".", " ").replace('!',' ').replace('?', ' ').replace('/',' ')
             entities = json_data["entities"]
             
             # Construct sentence_annotation from sentence and entities
             sentence_annotation = " " + sentence + " "
+            
             processed_position = 0
+            for entity in entities:
+                entity_filler = entity["filler"].replace(",", " , ").replace(".", " ").replace('!',' ').replace('?', ' ').replace('/',' ')
+                entities[entities.index(entity)]["filler"] = entity_filler 
+                
             for entity in entities:
                 entity_type = entity["type"]
                 entity_filler = entity["filler"]
@@ -29,16 +35,12 @@ def process_file(input_file_path, output_file_path):
                 # Update processed_position
                 processed_position = processed_position + unprocessed_part.find(f" [ {entity_type} : {entity_filler} ] ") + len(f" [ {entity_type} : {entity_filler} ]")
                 
-            # for entity in entities:
-            #     entity_type = entity["type"]
-            #     entity_filler = entity["filler"]
-            #     if f"[ {entity_type} : {entity_filler} ]" not in sentence_annotation:
-            #         sentence_annotation = sentence_annotation.replace(entity_type, f"[ {entity_type} : {entity_filler} ]")
-
+            
 
             # Add sentence_annotation to the JSON object
             json_data["sentence_annotation"] = sentence_annotation.strip()
             json_data["sentence"] = sentence
+            json_data["entities"] = entities
             # Write the updated JSON object to the output file
             output_file.write(json.dumps(json_data, ensure_ascii=False) + '\n')
 
