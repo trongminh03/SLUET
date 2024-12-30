@@ -25,6 +25,6 @@ def get_weights_from_accuracy(accuracies):
     return weights.tolist()
 
 # Example usage
-accuracies = [92.42, 92.71, 93.25]  # Example models with very close accuracies
+accuracies = [77.84, 77.53, 78.06]  # Example models with very close accuracies
 weights = get_weights_from_accuracy(accuracies)
 print("Softmax Normalized Weights: ", weights)

@@ -35,3 +35,13 @@ bible.arpa
 *.txt
 *.jsonl
 test.py
+
+kenlm/
+JointBERT*/
+JointIDSF*/
+
+error_analysis.ipynb
+error_analysis.py
+imgs/
+style.py
+trainer_ema.py

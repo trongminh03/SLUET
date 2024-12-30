@@ -1,6 +1,11 @@
 import os
 import json
 import argparse
+import re
+
+def normalize_text(text):
+    # Remove leading and trailing spaces and reduce multiple spaces to a single space
+    return re.sub(r'\s+', ' ', text.strip())
 
 def process_file(input_file_path, output_file_path): 
     with open(input_file_path, 'r', encoding='utf-8') as input_file, open(output_file_path, 'w', encoding='utf-8') as output_file:
@@ -11,7 +16,8 @@ def process_file(input_file_path, output_file_path):
             # Extract sentence and entities
             # sentence = json_data["sentence"].replace("phòng thời", "phòng thờ")
             sentence = json_data["sentence"]
-            sentence = sentence.replace(",", " , ").replace(".", " ").replace('!',' ').replace('?', ' ').replace('/',' ')
+            sentence = sentence.replace(",", " ").replace(".", " ").replace('!',' ').replace('?', ' ').replace('/',' ')
+            sentence = normalize_text(sentence)
             entities = json_data["entities"]
             
             # Construct sentence_annotation from sentence and entities
@@ -19,7 +25,8 @@ def process_file(input_file_path, output_file_path):
             
             processed_position = 0
             for entity in entities:
-                entity_filler = entity["filler"].replace(",", " , ").replace(".", " ").replace('!',' ').replace('?', ' ').replace('/',' ')
+                entity_filler = entity["filler"].replace(",", " ").replace(".", " ").replace('!',' ').replace('?', ' ').replace('/',' ')
+                entity_filler = normalize_text(entity_filler)
                 entities[entities.index(entity)]["filler"] = entity_filler 
                 
             for entity in entities:

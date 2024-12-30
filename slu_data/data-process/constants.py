@@ -1,6 +1,6 @@
 METADATA_FOLDER = 'Vietname_SLU_data/metadata_slu'
 SYLLABLE_FOLDER = 'slu_data/syllable-level'
-OUTPUT_FOLDER_PATH = 'slu_data/processed_output'
+OUTPUT_FOLDER_PATH = 'slu_data/processed_output_2'
 # OUTPUT_FOLDER_PATH = 'Vietname_SLU_data/metadata_slu'
 
 

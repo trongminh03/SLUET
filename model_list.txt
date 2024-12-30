@@ -1,2 +1,0 @@
-/home/fithaui/workspace/BKAI-Vietnamese-SLU/ckpt/JointIDSF_PhoBERTencoder_SLU/4e-5/0.15/100 0.428 0.507
-/home/fithaui/workspace/BKAI-Vietnamese-SLU/ckpt/JointIDSF_PhoBERTencoder_SLU_dropout_0.15/4e-5/0.15/100 0.572 0.493

@@ -229,6 +229,8 @@ def predict(pred_config):
                 softmax_slot_per_batch = (torch.softmax(slot_logits, dim=-1).cpu().numpy() * (weight_slot))
                 print(softmax_intent_per_batch)
                 print("intent_logits_per_batch:", softmax_intent_per_batch.shape)
+                print("slot_logits_per_batch:", softmax_slot_per_batch.shape)
+                print("slot_logits_per_batch:", softmax_slot_per_batch)
             if intent_logits_list is None:
 
                 intent_logits_list = softmax_intent_per_batch

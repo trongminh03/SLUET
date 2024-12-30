@@ -22,7 +22,7 @@ python3 main.py --token_level syllable-level \
                   --use_intent_context_attention \
                   --attention_embedding_size 200 \
                   --use_crf \
-                  --gpu_id 0 \
+                  --gpu_id 1 \
                   --embedding_type soft \
                   --intent_loss_coef $c \
                   --pretrained \

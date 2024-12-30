@@ -4,11 +4,7 @@ import argparse
 def run_command(command): 
     subprocess.run(command, check=True)
 
-# TRAIN_FILE_PATH = 'slu_data_1/data-process/train_processed.jsonl'
-# AUGMENTED_TRAIN_FILE_PATH = 'slu_data_1/data-process/augmented_data.jsonl'
-# INPUT_AUGMENTED_DATA = 'slu_data_1/data-process/random_sentences.jsonl' 
-
-OUTPUT_FOLDER_PATH = 'slu_data/processed_output'
+OUTPUT_FOLDER_PATH = 'slu_data/processed_output_2'
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser()

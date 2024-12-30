@@ -4,8 +4,6 @@ import argparse
 import zipfile
 
 def process_line(line, filename):
-    device = None
-    location = None
     parts = line.strip().split(" -> ")
     intent = parts[0][1:-1]  # Remove angle brackets from the intent
     if (len(parts) == 1):
@@ -23,19 +21,12 @@ def process_line(line, filename):
 
                 if entity_type_parts[0] == "B":
                     if current_entity != {}:
-                        # print(current_entity)
                         processed_entities.append(current_entity)
                         current_entity = {}
                         entity_filler = ""
                 
-                # entity_type = entity_type_parts[1].replace("_", " ")
                 entity_type = entity_type_parts[1]
                 filler = entity_parts[0]
-                # entry = {"type": entity_type, "filler": entity_filler}
-                # entity_dict.append(entry)
-                # if entity_type not in entity_dict:
-
-                # entity_dict[entity_type].append(entity_filler)
                 if entity_filler == "":
                     entity_filler = filler
                 else:
@@ -43,73 +34,18 @@ def process_line(line, filename):
                 current_entity = {"type": entity_type, "filler": entity_filler}
     if current_entity != {}:
         processed_entities.append(current_entity)
-   
-    # processed_entities = [{"type": key.replace('_', ' '), "filler": " ".join(value)} for key, value in entity_dict.items()]
-    # processed_entities = entity_dict
-    if "kiểm tra" not in intent and "hoạt cảnh" not in intent:
-        for entity in processed_entities:
-            if entity["type"] == "command":
-                entity["filler"] = intent.split()[0].lower()
 
     for entity in processed_entities:
-        if entity["type"] == "device":
-            device = entity["filler"]
-        if entity["type"] == "location":
-            location = entity["filler"]
-            locations = location.split()
-    # if (device):
-    #     if (device.split()[-1] == "của"):
-    #         if (location): 
-    #             device = device + " " +  locations[0]
-    #             # remove first word in location
-    #             location = " ".join(locations[1:])
-    #             # print(device)
-    #             for entity in processed_entities:
-    #                 if entity["type"] == "device":
-    #                     entity["filler"] = device
-    #                 if entity["type"] == "location":
-    #                     entity["filler"] = location
-    #                     rmentity = entity
-    #             if len(locations) == 1:
-    #                 # remove location in entities
-    #                 processed_entities.remove(rmentity)
-    #     if (location): 
-    #         if locations[0] == "của":
-    #             device = device + " " + location
-    #             # print(device)
-    #             for entity in processed_entities:
-    #                 if entity["type"] == "device":
-    #                     entity["filler"] = device
-    #                 if entity["type"] == "location":
-    #                     rmentity = entity
-    #             processed_entities.remove(rmentity)
-
-    # return {"intent": uppercase_first_character(intent), "entities": processed_entities, "file":filename}
+        filler = entity['filler']
+        filler = re.sub(r"(\d+)\s+km", r"\1km", filler)
+        filler = re.sub(r"(\d+)\s+s", r"\1s", filler)
+        entity['filler'] = filler
     return {"intent": intent, "entities": processed_entities, "file":filename}
 
 def uppercase_first_character(input):
     first_character = input[0]
     upper_first_character = first_character.upper()
     return upper_first_character + input[1:]
-
-def format(jsonl_line):
-    intent = jsonl_line['intent']
-    device = ""
-    pattern = r'(\d+)(\s+)độ.*'
-    have_percentage = False
-    have_degree = False
-    for entity in jsonl_line['entities']:
-        if entity['type'] == 'device':
-            device = entity['filler']
-        if "%" in entity['filler']:
-            have_percentage = True
-        if re.match(pattern, entity['filler']):  # Corrected regular expression matching
-            have_degree = True
-    # if (have_percentage and device == ""):
-    #     jsonl_line['intent'] = intent.replace("mức độ", "độ sáng").replace("âm lượng", "độ sáng").replace("nhiệt độ", "độ sáng")
-    # if (have_degree and device == ""):
-    #     jsonl_line['intent'] = intent.replace("độ sáng", "nhiệt độ").replace("âm lượng", "nhiệt độ").replace("mức độ", "nhiệt độ")
-    return jsonl_line
 
 
 
@@ -149,7 +85,8 @@ if __name__ == '__main__':
     with open(input_filename, "r", encoding="utf-8") as input_file, open(output_filename, "w", encoding="utf-8") as output_file:
         for line, filename in zip(input_file, filenames):
             jsonline = process_line(line, filename)
-            result = format(jsonline)
-            output_file.write(json.dumps(result, ensure_ascii=False) + "\n")
+            output_file.write(json.dumps(jsonline, ensure_ascii=False) + "\n")
+            # result = format(jsonline)
+            # output_file.write(json.dumps(result, ensure_ascii=False) + "\n")
     
     zip_file(output_filename, zip_filename + ".zip")
