@@ -1,4 +1,4 @@
-# SoICT Hackathon 2023: Vietnamese Spoken Language Understanding Challenge
+# SLUET: A novel method for Vietnamese Spoken Language Understanding
 ## Overview
 - This repository contains 2 modules:
      - Speech to Text module.
@@ -7,16 +7,47 @@
 - P/s: Your device must have Docker and GPU. You should run it on Docker.
 - You first need to clone the repository including its submodules:
     ```
-    git clone --recurse-submodules https://github.com/trongminh03/BKAI-Vietnamese-SLU.git
+    git clone --recurse-submodules https://github.com/trongminh03/SLUET.git
     ```
+
+## Dataset
+- SLUET is trained and evaluated on VN-SLU dataset. Please refer to the below links: 
+    - Audio files: https://drive.google.com/drive/folders/1QJFQjwNl4tmlf4R1yt4W3gfUzsiF-kWp
+    - Dataset labels: https://drive.google.com/drive/folders/1BDKK8vg-tByTY2EUWi6aYDjqG1NIFG8H
+The final directory structure will be as follows:
+```bash
+Vietname_SLU_data
+|
+├─ data_interspeech
+|   ├── train
+|   |     ├── 64b420ff8e16f5f56e45a2b7.wav
+|   |     ├── 64b420118e16f55e6945a2a5.wav
+|   |     ├── ...
+|   |
+|   ├── dev
+|   |     ├── 64a82d17a35d0a0764e9c1ea.wav
+|   |     ├── 659438782883f803e891bfbd.wav
+|   |     ├── ...
+|   |  
+|   └── test
+|   |     ├── 64a2d963f5f4465ad1799206.wav
+|   |     ├── 64b3fea5d6657a2b648ce03a.wav
+|   |     ├── ...
+|     
+└── metadata_slu
+    ├── train.jsonl
+    ├── dev.jsonl
+    └── test.jsonl
+    
+```
 ## Docker
 - Build image using this command:
 ```
-DOCKER_BUILDKIT=1 docker build -t slu .
+DOCKER_BUILDKIT=1 docker build -t sluet .
 ```
 - Then run the image using this command:
 ```
-docker run -it --name docker_slu --gpus all --rm slu
+docker run -it --name docker_sluet --gpus all --rm sluet
 ```
 ## Speech to Text module
 ### Training
@@ -25,43 +56,7 @@ docker run -it --name docker_slu --gpus all --rm slu
     1. Go to SLU-ASR folder:
         ```
         cd SLU-ASR
-        ```
-    2. Generate data and Denoise data(optional):
-        - Be careful if you mount your data folder inside docker. 
-        - The generated data and denoised data will be stored in the same folder as the origin train data folder.
-        - Download our generated data and denoised data by running:
-        ```
-        bash download_data.sh [Path to your origin train data folder]
-        ```
-        - Download [newaug_newdenoise.jsonl](https://drive.google.com/file/d/1iL-P17ULBWN58Up-AjeArjoJWhalTLZa/view?usp=drive_link) and [newaug_newdenoise2.jsonl](https://drive.google.com/file/d/12H05uTpWwqv632o6hM-Qy_wBJYsBnbPL/view?usp=drive_link):
-        - You can use `gdown` to download the file.
-            - `newaug_newdenoise.jsonl` file: 
-                ```
-                gdown 1iL-P17ULBWN58Up-AjeArjoJWhalTLZa
-                ```
-            - `newaug_newdenoise2.jsonl` file:
-                ```
-                gdown 12H05uTpWwqv632o6hM-Qy_wBJYsBnbPL
-                ```
-        - After that the data folders should look like :
-         ```bash
-        data
-        └──train_data
-            ├── 64b420ff8e16f5f56e45a2b7.wav
-            ├── 64b420118e16f55e6945a2a5.wav
-            ├── ...
-            ├── 648f0583bd5f017127bbb7cbBandStopFilter.wav
-            ├── ...
-            ├── 64b420ff8e16f5f56e45a2b7cleantrain.wav
-            ├── 64b420118e16f55e6945a2a5cleantrain.wav
-            ├── ...
-            ├── 64a18594883d155a21f23f651-17367-A-102.wav
-            ├── ...
-        
-        ```
-        - This results in 2 differents dataset with 2 different jsonl files which then produces 2 different checkpoints. We will ensemble it in Inference part.
-        - To augment and denoise data, we use [this](https://github.com/karolpiczak/ESC-50) and [this](https://github.com/facebookresearch/denoiser) repo.
-    4. Prepare your dataset
+    2. Prepare your dataset
         - To put your dataset in correct format and process it run: 
             ```
             bash prepare_train_data.sh [Path to wav data directory] [Path to jsonline train file]
@@ -87,9 +82,8 @@ docker run -it --name docker_slu --gpus all --rm slu
         ```
         bash train_lm.sh /data/train.jsonl
         ```
-        **Note:** Dont use the generated `train_and_aug.jsonl file` here.
         - The LM model will be stored in `your_ngram.binary`
-- You can use our ASR model checkpoints and a LM model checkpoints through this link:
+<!-- - You can use our ASR model checkpoints and a LM model checkpoints through this link:
     - [First ASR model](https://drive.google.com/drive/folders/1eXHr0Q4RvhQTIghBY3gL3Lm2CoH3zbgf?usp=drive_link)
         ```
         gdown --folder 1eXHr0Q4RvhQTIghBY3gL3Lm2CoH3zbgf
@@ -101,45 +95,35 @@ docker run -it --name docker_slu --gpus all --rm slu
     - [LM model](https://drive.google.com/file/d/1XdQ0O-zyKEE8Z_glH9NZuj-Sj8v3jhkg/view?usp=sharing)
         ```
         gdown 1XdQ0O-zyKEE8Z_glH9NZuj-Sj8v3jhkg
-        ```
+        ``` -->
 ### Inference
 - First, go to SLU-ASR folder then run
 ```
-bash inference_ensemble.sh  [Path to your wav test file lists] [Path to model list to ensemble] [Path to LM model] [save_path]
+bash inference.sh  [Path to your wav test file lists] [Path to LM model] [save_path]
 ```
     
 - Example:
 ```
-bash inference_ensemble.sh /data/public_test/ model_list.txt add_gen_3gram.binary process_trans_file.txt
+bash inference.sh /data/public_test/ 3_ngram.binary process_trans_file.txt
 ```
-- Set the path to your models you want to ensemble in `SLU-ASR/model_list.txt`. To reproduce the result, keep the weight which ís a float number after the path and set the path to your actual path.
 
 ## Text Intent and Slot Filling module
 ### Training 
 1. Prepare your data
     - Run the following command to pre-process default `train.jsonl` file and prepare data for training:
         ```
-        python3 slu_data_1/data_process.py -j [Path to train.jsonl file]
+        python3 slu_data/data_process.py -m [Path to metadata jsonl files]
         ```
-    - Adding the `--augment_data` flag will include augmented data in the processing
-    - Example :
-        ```cmd
-        python3 slu_data_1/data_process.py -j /data/train.jsonl --augment_data
-        ```
-    The processed data will be stored in `slu_data_1/syllable-level`
+    The processed data will be stored in `slu_data/syllable-level`
 2. Run 
     - Run the following bash file to start training: 
         ```cmd
         ./run_jointIDSF_PhoBERTencoder.sh
         ```
 ### Inference
-- Here is [model checkpoints link](https://drive.google.com/drive/folders/1tZ-508QnyfQEh1_xzkoVjwkSkW38I04f?usp=drive_link) in case you want to make inference without training the models from scratch
+Run this command for inference: 
 ```
-gdown --folder 1eCSHBAp1uD31dsgup5as-gQd2K_2rHuN
-```
-- Then run this command for inference:
-```
- bash inference_JointIDSF.sh [Path to output transcript of ASR module] [Path to model checkpoints] [saved name]
+bash inference_JointIDSF.sh [Path to output transcript of ASR module] [Path to model checkpoints] [saved name]
 ```
 - Example:
 ```
@@ -151,12 +135,5 @@ bash inference_JointIDSF.sh SLU-ASR/final_trans.txt JointIDSF_PhoBERTencoder_SLU
 - Edit ``` model_list.txt ``` file which includes multiple model names and weights that you want to ensemble. 
 - Then run:
 ```
-bash inference_ensemble.sh 
+bash inference_ensemble.sh [Path to transcript file]
 ```
-- To reproduce the result, keep the weight and set the path to your actual path.
-
-### Technical report
-https://www.overleaf.com/project/650b05c5c9e4867104e1aedd
-
-### Presentation slide: 
-https://docs.google.com/presentation/d/177N4RaGl3ClBxHGwqgNPutTGzbPfNe-l/edit#slide=id.p1
